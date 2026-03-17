@@ -66,14 +66,14 @@ def build_and_evaluate_model():
     df = pd.read_csv(data_path, encoding='latin-1')
     
     # Verify dataset has the required categories
-    print("Categories found:", df['category'].unique())
+    print("Categories found:", df['type'].unique())
     
-    # Assuming columns 'category' and 'text'
+    # Assuming columns 'type' and 'news'
     print("Preprocessing text... This may take a few minutes.")
     # For speed during testing, you can sample df if needed, but we'll use all data
-    df['clean_text'] = df['text'].apply(preprocess_text)
+    df['clean_text'] = df['news'].apply(preprocess_text)
     
-    X_train, X_test, y_train, y_test = train_test_split(df['clean_text'], df['category'], test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df['clean_text'], df['type'], test_size=0.2, random_state=42)
     
     # Pipeline: Bag of Words -> Classifier
     pipeline = Pipeline([
@@ -96,7 +96,7 @@ def build_and_evaluate_model():
     # Plot Learning Curve
     print("Generating learning curves...")
     train_sizes, train_scores, test_scores = learning_curve(
-        pipeline, df['clean_text'], df['category'], cv=5, 
+        pipeline, df['clean_text'], df['type'], cv=5, 
         n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 5)
     )
     
