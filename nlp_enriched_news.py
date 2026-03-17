@@ -15,8 +15,8 @@ def main():
     try:
         nlp = spacy.load("en_core_web_sm")
     except OSError:
-        import spacy.cli
-        spacy.cli.download("en_core_web_sm")
+        from spacy.cli import download
+        download("en_core_web_sm")
         nlp = spacy.load("en_core_web_sm")
 
     print("Loading Topic Classifier Pipeline...")
@@ -28,6 +28,12 @@ def main():
         return
 
     print("Loading VADER Sentiment Analyzer...")
+    try:
+        import nltk
+        nltk.data.find('sentiment/vader_lexicon')
+    except LookupError:
+        import nltk
+        nltk.download('vader_lexicon')
     sia = SentimentIntensityAnalyzer()
 
     print("Loading Gensim Word2Vec Embeddings (glove-wiki-gigaword-50)...")
@@ -114,13 +120,22 @@ def main():
             print(f"Environmental scandal detected for {scandal_detected_for[0]}")
             
         df.at[idx, 'Org'] = str(orgs)
-        df.at[idx, 'Topics'] = topic
+        # Wrap topic in list representation
+        df.at[idx, 'Topics'] = str([topic.capitalize()])
         df.at[idx, 'Sentiment'] = score
         df.at[idx, 'Scandal_distance'] = min_dist
 
     # Flag top 10 articles based on shortest scandal distance
     top_10_indices = df.nsmallest(10, 'Scandal_distance').index
     df.loc[top_10_indices, 'Top_10'] = True
+    
+    # Rename columns to match project requirements
+    df.rename(columns={
+        'uuid': 'Unique ID',
+        'date': 'Date scraped',
+        'headline': 'Headline',
+        'body': 'Body'
+    }, inplace=True)
     
     # Save the dataframe
     output_path = "results/enhanced_news.csv"
